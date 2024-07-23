@@ -20,6 +20,10 @@ export default class AdminBackupsRoute extends DiscourseRoute {
   @service messageBus;
   @service modal;
 
+  titleToken() {
+    return I18n.t("admin.backups.title");
+  }
+
   activate() {
     this.messageBus.subscribe(LOG_CHANNEL, this.onMessage);
   }
@@ -33,7 +37,7 @@ export default class AdminBackupsRoute extends DiscourseRoute {
       ajax("/admin/backups/status.json")
     );
 
-    BackupStatus.create({
+    return BackupStatus.create({
       isOperationRunning: status.is_operation_running,
       canRollback: status.can_rollback,
       allowRestore: status.allow_restore,
