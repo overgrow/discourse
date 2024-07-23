@@ -1535,6 +1535,25 @@ RSpec.describe TopicsController do
         expect(Post.find_by(id: small_action_post.id)).to eq(nil)
       end
 
+      it "creates a log and clean up previously recorded sensitive information" do
+        small_action_post = Fabricate(:small_action, topic: topic)
+        PostDestroyer.new(Discourse.system_user, post).destroy
+        PostDestroyer.new(Discourse.system_user, small_action_post).destroy
+
+        delete "/t/#{topic.id}.json", params: { force_destroy: true }
+
+        expect(response.status).to eq(200)
+
+        expect(UserHistory.last).to have_attributes(
+          action: UserHistory.actions[:delete_topic_permanently],
+          acting_user_id: admin.id,
+        )
+
+        expect(UserHistory.where(topic_id: topic.id, details: "(permanently deleted)").count).to eq(
+          2,
+        )
+      end
+
       it "does not allow to destroy topic if not all posts were force destroyed" do
         _other_post = Fabricate(:post, topic: topic, post_number: 2)
         PostDestroyer.new(Discourse.system_user, post).destroy
@@ -5029,6 +5048,26 @@ RSpec.describe TopicsController do
         execute_at = created_timer.execute_at.to_formatted_s(:iso8601)
 
         expect(execute_at).to eq(updated_timestamp)
+      end
+    end
+
+    describe "changes slow mode" do
+      before { sign_in(admin) }
+
+      it "should create a staff log entry" do
+        put "/t/#{topic.id}/slow_mode.json", params: { seconds: "3600" }
+
+        log = UserHistory.last
+        expect(log.acting_user_id).to eq(admin.id)
+        expect(log.topic_id).to eq(topic.id)
+        expect(log.action).to eq(UserHistory.actions[:topic_slow_mode_set])
+
+        put "/t/#{topic.id}/slow_mode.json", params: { seconds: "0" }
+
+        log = UserHistory.last
+        expect(log.acting_user_id).to eq(admin.id)
+        expect(log.topic_id).to eq(topic.id)
+        expect(log.action).to eq(UserHistory.actions[:topic_slow_mode_removed])
       end
     end
   end

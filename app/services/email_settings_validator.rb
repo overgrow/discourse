@@ -62,9 +62,6 @@ class EmailSettingsValidator
   # Attempts to start an SMTP session and if that raises an error then it is
   # assumed the credentials or other settings are wrong.
   #
-  # For Gmail, the port should be 587, enable_starttls_auto should be true,
-  # and enable_tls should be false.
-  #
   # @param domain [String] - Used for HELO, should be the FQDN of the server sending the mail
   #                          localhost can be used in development mode.
   #                          See https://datatracker.ietf.org/doc/html/rfc788#section-4
@@ -83,16 +80,13 @@ class EmailSettingsValidator
     debug: Rails.env.development?
   )
     begin
-      port, enable_tls, enable_starttls_auto =
-        provider_specific_ssl_overrides(host, port, enable_tls, enable_starttls_auto)
-
       if enable_tls && enable_starttls_auto
         raise ArgumentError, "TLS and STARTTLS are mutually exclusive"
       end
 
       if username || password
-        authentication = provider_specific_authentication_overrides(host) if authentication.nil?
-        authentication = (authentication || GlobalSetting.smtp_authentication)&.to_sym
+        authentication = SmtpProviderOverrides.authentication_override(host) if authentication.nil?
+        authentication = authentication.to_sym
         if !%i[plain login cram_md5].include?(authentication)
           raise ArgumentError, "Invalid authentication method. Must be plain, login, or cram_md5."
         end
@@ -179,30 +173,5 @@ class EmailSettingsValidator
       )
     end
     raise err
-  end
-
-  # Ideally we (or net-smtp) would automatically detect the correct authentication
-  # method, but this is sufficient for our purposes because we know certain providers
-  # need certain authentication methods. This may need to change when we start to
-  # use XOAUTH2 for SMTP.
-  def self.provider_specific_authentication_overrides(host)
-    return :login if %w[smtp.office365.com smtp-mail.outlook.com].include?(host)
-    :plain
-  end
-
-  def self.provider_specific_ssl_overrides(host, port, enable_tls, enable_starttls_auto)
-    # Certain mail servers act weirdly if you do not use the correct combinations of
-    # TLS settings based on the port, we clean these up here for the user.
-    if %w[smtp.gmail.com smtp.office365.com smtp-mail.outlook.com].include?(host)
-      if port.to_i == 587
-        enable_starttls_auto = true
-        enable_tls = false
-      elsif port.to_i == 465
-        enable_starttls_auto = false
-        enable_tls = true
-      end
-    end
-
-    [port, enable_tls, enable_starttls_auto]
   end
 end

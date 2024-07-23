@@ -1335,10 +1335,13 @@ email:
   enable_imap:
     default: false
     client: true
+    hidden: true
   enable_imap_write:
     default: false
+    hidden: true
   enable_imap_idle:
     default: false
+    hidden: true
   enable_smtp:
     default: false
     client: true
@@ -2422,18 +2425,17 @@ developer:
     default: ""
     client: true
     hidden: true
-  experimental_topic_bulk_actions_enabled_groups:
-    default: ""
-    type: group_list
-    list_type: compact
-    allow_any: false
-    refresh: true
   experimental_flags_admin_page_enabled_groups:
     default: ""
     type: group_list
     list_type: compact
     allow_any: false
     refresh: true
+  experimental_redesigned_about_page_groups:
+    default: ""
+    type: group_list
+    hidden: true
+    allow_any: false
 
 navigation:
   navigation_menu:

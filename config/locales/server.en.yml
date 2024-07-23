@@ -1123,8 +1123,7 @@ en:
     pop3_authentication_error: "There was an issue with the POP3 credentials provided, check the username and password and try again."
     imap_authentication_error: "There was an issue with the IMAP credentials provided, check the username and password and try again."
     imap_no_response_error: "An error occurred when communicating with the IMAP server. %{message}"
-    smtp_authentication_error: "There was an issue with the SMTP credentials provided, check the username and password and try again."
-    authentication_error_gmail_app_password: 'Application-specific password required. Learn more at <a target="_blank" href="https://support.google.com/accounts/answer/185833">this Google Help article</a>'
+    smtp_authentication_error: "There was an issue with the SMTP credentials provided, check the username and password and try again. %{message}"
     smtp_server_busy_error: "The SMTP server is currently busy, try again later."
     smtp_unhandled_error: "There was an unhandled error when communicating with the SMTP server. %{message}"
     imap_unhandled_error: "There was an unhandled error when communicating with the IMAP server. %{message}"
@@ -2680,7 +2679,6 @@ en:
     experimental_form_templates: "EXPERIMENTAL: Enable the form templates feature. <b>After enabled,</b> manage the templates at <a href='%{base_path}/admin/customize/form-templates'>Customize / Templates</a>."
     admin_sidebar_enabled_groups: "Enable sidebar navigation for the admin UI for the specified groups, which replaces the top-level admin navigation buttons."
     lazy_load_categories_groups: "EXPERIMENTAL: Lazy load category information only for users of these groups. This improves performance on sites with many categories."
-    experimental_topic_bulk_actions_enabled_groups: "EXPERIMENTAL: Enable the new bulk actions dropdown."
 
     page_loading_indicator: "Configure the loading indicator which appears during page navigations within Discourse. 'Spinner' is a full page indicator. 'Slider' shows a narrow bar at the top of the screen."
     show_user_menu_avatars: "Show user avatars in the user menu"
@@ -5469,6 +5467,7 @@ en:
       comment_by: "Comment by"
       review_by: "Review by"
       pr_summary: "%{commits} commits changed %{changed_files} files with %{additions} additions and %{deletions} deletions"
+      no_description: "Contribute to %{repo} development by creating an account on GitHub."
 
   discourse_push_notifications:
     popup:
