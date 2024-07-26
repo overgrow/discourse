@@ -147,20 +147,32 @@ RSpec.describe JsLocaleHelper do
   end
 
   describe ".output_MF" do
-    let(:output) { described_class.output_MF(locale).gsub(/^import.*$/, "") }
-    let(:generated_locales) { v8_ctx.eval("Object.keys(I18n._mfMessages._data)") }
-    let(:translated_message) do
-      v8_ctx.eval("I18n._mfMessages.get('posts_likes_MF', {count: 3, ratio: 'med'})")
-    end
-    let!(:overriden_translation) do
+    fab!(:overriden_translation_en) do
       Fabricate(
         :translation_override,
         translation_key: "admin_js.admin.user.penalty_history_MF",
         value: "OVERRIDEN",
       )
     end
+    fab!(:overriden_translation_ja) do
+      Fabricate(:translation_override, locale: "ja", translation_key: "js.posts_likes_MF")
+    end
+    fab!(:overriden_translation_he) do
+      Fabricate(:translation_override, locale: "he", translation_key: "js.posts_likes_MF")
+    end
+    let(:output) { described_class.output_MF(locale).gsub(/^import.*$/, "") }
+    let(:generated_locales) { v8_ctx.eval("Object.keys(I18n._mfMessages._data)") }
+    let(:translated_message) do
+      v8_ctx.eval("I18n._mfMessages.get('posts_likes_MF', {count: 3, ratio: 'med'})")
+    end
 
-    before { v8_ctx.eval(output) }
+    before do
+      overriden_translation_ja.update_columns(
+        value: "{ count, plural, one {返信 # 件、} other {返信 # 件、} }",
+      )
+      overriden_translation_he.update_columns(value: "{ count, plural, ")
+      v8_ctx.eval(output)
+    end
 
     context "when locale is 'en'" do
       let(:locale) { "en" }
@@ -225,6 +237,22 @@ RSpec.describe JsLocaleHelper do
             expect(translated_message).to eq "OVERRIDEN"
           end
         end
+      end
+    end
+
+    context "when locale contains invalid plural keys" do
+      let(:locale) { "ja" }
+
+      it "does not raise an error" do
+        expect(generated_locales).to match(%w[ja en])
+      end
+    end
+
+    context "when locale contains malformed messages" do
+      let(:locale) { "he" }
+
+      it "raises an error" do
+        expect(output).to match(/Failed to compile message formats/)
       end
     end
   end
